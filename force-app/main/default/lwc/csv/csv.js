@@ -1,32 +1,47 @@
 import { LightningElement, track } from 'lwc';
 
 export default class ImportarDatosDesdeCSV extends LightningElement {
-    @track importDate;
-    @track filePath;
-    @track importMessage;
-    @track importMessageClass;
-    @track importedData; // Nueva propiedad para almacenar los datos importados
+    importDate;
+    filePath;
+    importMessage;
+    importMessageClass;
+    @track importedData; // Si planeas usarla posteriormente
     @track columns;
 
     handleFileChange(event) {
         const selectedFile = event.target.files[0];
-        this.filePath = selectedFile.name;
+        if (!selectedFile) {
+            this.showErrorMessage('No se seleccionó ningún archivo.');
+            return;
+        }
 
+        this.filePath = selectedFile.name;
         const reader = new FileReader();
         reader.onload = () => {
-            const csvData = this.csvJSON(reader.result);
-            const headers = this.extractHeaders(csvData);
+            try {
+                const csvData = this.csvJSON(reader.result);
+                if (csvData.length === 0) {
+                    throw new Error('El archivo está vacío o no tiene el formato correcto.');
+                }
+                this.importedData = csvData; // Asignar datos procesados a importedData si se usará
+                const headers = this.extractHeaders(csvData);
 
-            this.columns = headers.map(header => ({
-                label: header,
-                fieldName: header,
-                type: 'text'
-            }));
+                this.columns = headers.map(header => ({
+                    label: header,
+                    fieldName: header,
+                    type: 'text'
+                }));
 
-            // Asignar los datos al componente
-            this.importedData = csvData;
+                this.importMessage = 'Datos preparados para importar.';
+                this.importMessageClass = 'slds-text-color_success';
+                // this.navigateAfterImport(); // Implementar esta función si es necesario
+            } catch (error) {
+                this.showErrorMessage(error.message);
+            }
         };
-
+        reader.onerror = () => {
+            this.showErrorMessage('Error al leer el archivo.');
+        };
         reader.readAsText(selectedFile);
     }
 
@@ -35,21 +50,14 @@ export default class ImportarDatosDesdeCSV extends LightningElement {
     }
 
     importData() {
-        // Lógica para importar datos desde el archivo CSV (puedes implementar según tus necesidades)
-        // En este ejemplo, simplemente se muestra un mensaje de éxito o error
-        const success = true; // o false
-        if (success) {
-            this.importMessage = 'Datos importados con éxito.';
-            this.importMessageClass = 'success-message';
-        } else {
-            this.importMessage = 'Error al importar datos. Verifica el archivo CSV.';
-            this.importMessageClass = 'error-message';
-        }
+        // Aquí deberías implementar la lógica real de importación utilizando `importedData`
+        this.showSuccessMessage('Datos importados con éxito.');
     }
 
     csvJSON(csv) {
-        // Lógica para convertir el CSV a formato JSON
-        const lines = csv.split('\n');
+        const lines = csv.split('\n').filter(line => line.trim() !== '');
+        if (lines.length < 2) return [];
+        
         const result = [];
         const headers = lines[0].split(',');
 
@@ -58,18 +66,30 @@ export default class ImportarDatosDesdeCSV extends LightningElement {
             const currentLine = lines[i].split(',');
 
             for (let j = 0; j < headers.length; j++) {
-                obj[headers[j]] = currentLine[j];
+                obj[headers[j]] = currentLine[j].trim();
             }
-
             result.push(obj);
         }
-
         return result;
     }
 
     extractHeaders(csvData) {
-        // Lógica para obtener los encabezados del CSV
-        // En este ejemplo, simplemente se toman las claves del primer objeto en el array
         return Object.keys(csvData[0]);
     }
+
+    showErrorMessage(message) {
+        this.importMessage = message;
+        this.importMessageClass = 'slds-text-color_error'; // Asegúrate de que esta clase exista o es correcta
+    }
+
+    // Implementar si es necesario
+    showSuccessMessage(message) {
+        this.importMessage = message;
+        this.importMessageClass = 'slds-text-color_success'; // Asegúrate de que esta clase exista o es correcta
+    }
+
+    // Si se necesita navegación posterior a la importación
+    // navigateAfterImport() {
+    //     // Implementación de navegación
+    // }
 }

@@ -1,19 +1,25 @@
 <template>
     <lightning-card title="Importar Datos desde CSV" icon-name="custom:custom14">
         <div class="slds-m-around_medium">
+            <!-- Selector de Archivos CSV -->
             <lightning-input type="file" label="Seleccionar Archivo CSV" accept=".csv" onchange={handleFileChange}></lightning-input>
-            <lightning-input type="date" label="Fecha de Importación" value={importDate} onchange={handleDateChange} size="small"></lightning-input>
+            
+            <!-- Botón para Importar Datos -->
             <lightning-button label="Importar Datos" onclick={importData} variant="brand"></lightning-button>
+            
+            <!-- Mensaje de Resultado de la Importación -->
             <div class={importMessageClass}>{importMessage}</div>
         </div>
 
-        <!-- Nueva sección para mostrar los datos importados -->
+        <!-- Sección para Mostrar los Datos Importados si existen -->
         <template if:true={importedData}>
             <div class="slds-m-around_medium">
                 <lightning-datatable
                     key-field="id"
                     data={importedData}
-                    columns={columns}>
+                    columns={columns}
+                    hide-checkbox-column
+                    show-row-number-column>
                 </lightning-datatable>
             </div>
         </template>
