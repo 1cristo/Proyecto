@@ -1,25 +1,40 @@
 <template>
     <lightning-card title="Importar Datos desde CSV" icon-name="custom:custom14">
-        <div class="slds-m-around_medium">
-            <lightning-input type="file" label="Seleccionar Archivo CSV" accept=".csv" onchange={handleFileChange}></lightning-input>
-            <lightning-button label="Importar Datos" onclick={importData} variant="brand"></lightning-button>
-            <div class={importMessageClass}>{importMessage}</div>
-        </div>
-
-        <template if:true={importedData}>
+        <!-- Paso 1: Selección del objeto de Salesforce -->
+        <template if:true={isSelectObjectStep}>
             <div class="slds-m-around_medium">
-                <lightning-datatable
-                    key-field="id"
-                    data={importedData}
-                    columns={columns}
-                    hide-checkbox-column
-                    show-row-number-column>
-                </lightning-datatable>
+                <lightning-combobox
+                    label="Seleccionar Objeto de Salesforce"
+                    value={selectedObject}
+                    options={objectsList}
+                    onchange={handleObjectChange}></lightning-combobox>
+                <lightning-button label="Siguiente" onclick={handleNextToSelectFile} variant="brand"></lightning-button>
             </div>
+        </template>
 
+        <!-- Paso 2: Selección y carga del archivo CSV -->
+        <template if:true={isSelectFileStep}>
             <div class="slds-m-around_medium">
+                <lightning-input type="file" label="Seleccionar Archivo CSV" accept=".csv" onchange={handleFileChange}></lightning-input>
+                <lightning-button label="Siguiente" onclick={handleNextToMapFields} variant="brand"></lightning-button>
+            </div>
+        </template>
+
+        <!-- Paso 3: Mapeo de la información -->
+        <template if:true={isMapFieldsStep}>
+            <div class="slds-m-around_medium">
+                <template if:true={importedData}>
+                    <lightning-datatable
+                        key-field="id"
+                        data={importedData}
+                        columns={columns}
+                        hide-checkbox-column
+                        show-row-number-column>
+                    </lightning-datatable>
+                </template>
+
                 <template for:each={fieldsToMap} for:item="field">
-                    <div key={field.apiName}>
+                    <div key={field.apiName} class="slds-m-around_medium">
                         <lightning-combobox
                             name={field.apiName}
                             label={field.label}
@@ -30,8 +45,9 @@
                         </lightning-combobox>
                     </div>
                 </template>
-                <lightning-button label="Finalizar Mapeo" onclick={finalizeMapping} variant="brand"></lightning-button>
+                <lightning-button label="Finalizar Mapeo e Importar" onclick={importData} variant="brand"></lightning-button>
             </div>
+            <div class={importMessageClass}>{importMessage}</div>
         </template>
     </lightning-card>
 </template>
