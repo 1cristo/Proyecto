@@ -1,17 +1,11 @@
 <template>
     <lightning-card title="Importar Datos desde CSV" icon-name="custom:custom14">
         <div class="slds-m-around_medium">
-            <!-- Selector de Archivos CSV -->
             <lightning-input type="file" label="Seleccionar Archivo CSV" accept=".csv" onchange={handleFileChange}></lightning-input>
-            
-            <!-- Botón para Importar Datos -->
             <lightning-button label="Importar Datos" onclick={importData} variant="brand"></lightning-button>
-            
-            <!-- Mensaje de Resultado de la Importación -->
             <div class={importMessageClass}>{importMessage}</div>
         </div>
 
-        <!-- Sección para Mostrar los Datos Importados si existen -->
         <template if:true={importedData}>
             <div class="slds-m-around_medium">
                 <lightning-datatable
@@ -21,6 +15,22 @@
                     hide-checkbox-column
                     show-row-number-column>
                 </lightning-datatable>
+            </div>
+
+            <div class="slds-m-around_medium">
+                <template for:each={fieldsToMap} for:item="field">
+                    <div key={field.apiName}>
+                        <lightning-combobox
+                            name={field.apiName}
+                            label={field.label}
+                            value={field.mappedColumn}
+                            placeholder="Seleccione Columna"
+                            options={columnOptions}
+                            onchange={handleFieldMappingChange}>
+                        </lightning-combobox>
+                    </div>
+                </template>
+                <lightning-button label="Finalizar Mapeo" onclick={finalizeMapping} variant="brand"></lightning-button>
             </div>
         </template>
     </lightning-card>
